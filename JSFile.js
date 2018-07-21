@@ -13,7 +13,8 @@ req.onload = () => {
     place: item.Place,
     seconds: item.Seconds,
     name: item.Name,
-    year: new Date(`${(item.Year)}`),
+    // year: new Date(`${(item.Year)}`),
+    year: item.Year,
     doping: item.Doping,
   },
   ]), []);
@@ -21,13 +22,11 @@ req.onload = () => {
 };
 
 const drawScatterPlot = (data) => {
-console.log(data);
   //dimensions of the chart element
   const w = 700;
   const h = 500;
   const margin = { top: 20, right: 80, bottom: 20, left: 100, };
   const r = 5;
-
 
   //svg container for the charset
   const svg = d3.select('body')
@@ -37,14 +36,15 @@ console.log(data);
     .attr('class', 'containerSVG');
 
   //scales for the x and y axes
-  let xScale = d3.scaleTime();
+  let xScale = d3.scaleLinear();
+  // let yScale = d3.scaleTime();
   let yScale = d3.scaleTime();
-  xScale.domain([d3.min(data, (d) => d.year),
-    new Date(`${d3.max(data, (d) => d.year).getFullYear() + 1}`)])
+
+  xScale.domain([d3.min(data, (d) => d.year), d3.max(data, (d) => d.year)])
     .range([0, w]);
   yScale.domain([d3.min(data, (d) => d.time), d3.max(data, (d) => d.time)])
     .range([h, 0]);
-console.log(d3.min(data, (d) => d.year), d3.max(data, (d) => d.year));
+
   //scatter plots added to the graph
   svg.selectAll('circle')
     .data(data)
@@ -61,8 +61,17 @@ console.log(d3.min(data, (d) => d.year), d3.max(data, (d) => d.year));
   //x and y axes
   const xAxis = d3.axisBottom(xScale);
   const yAxis = d3.axisLeft(yScale);
+  //extend the x-axis
+  let newTicks = xAxis.scale().ticks();
+  // let nextDate = new Date(`${data[data.length - 1].year.getFullYear() + 4}`);
+  let nextDate = data[data.length - 1].year + 1;
+  // xAxis.tickValues(newTicks.concat(nextDate));
+  console.log('newDate', nextDate);
+  console.log('ticks', xAxis.scale().ticks());
   svg.append('g').attr('transform', `translate(${margin.left}, ${h + margin.top})`)
-    .call(xAxis);
+    .call(xAxis.tickValues(newTicks.concat(nextDate)));
   svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`)
     .call(yAxis);
+
+
 };
