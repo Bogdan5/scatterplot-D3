@@ -69,13 +69,17 @@ const drawScatterPlot = (data) => {
 
   //adding legend
   const legend = svg.append('g')
-    .attr('id', 'legend')
-    .attr('transform', `translate(${w + margin.left - 150}, ${h / 2})`);
+    .attr('id', 'legend');
 
   legend.append('text')
     .attr('class', 'legendText')
-    .text('No doping allegations');
+    .text('No doping allegations')
+    .attr('transform', `translate(${w + margin.left - 150}, ${h / 2})`);
   legend.append('text')
     .attr('class', 'legendText')
-    .text('Riders with doping allegations');
+    .text('Riders with doping allegations')
+    .attr('transform', `translate(${w + margin.left - 150}, ${h / 2 + 20})`);
+  legend.append('rect')
+    .attr('fill', 'blue')
+    .attr()
 };

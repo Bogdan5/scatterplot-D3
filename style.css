@@ -12,3 +12,8 @@ h1, h4{
 .dot{
   opacity: 0.8;
 }
+
+.legendText{
+  font-size: 10px;
+  font-family: Roboto Slab, serif;
+}
