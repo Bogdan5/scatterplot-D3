@@ -13,7 +13,6 @@ req.onload = () => {
     place: item.Place,
     seconds: item.Seconds,
     name: item.Name,
-    // year: new Date(`${(item.Year)}`),
     year: item.Year,
     doping: item.Doping,
   },
@@ -37,11 +36,9 @@ const drawScatterPlot = (data) => {
 
   //scales for the x and y axes
   let xScale = d3.scaleLinear();
-  // let yScale = d3.scaleTime();
   let yScale = d3.scaleTime();
-
-  xScale.domain([d3.min(data, (d) => d.year), d3.max(data, (d) => d.year)])
-    .range([0, w]);
+  xScale.domain([d3.min(data, (d) => d.year) - 1, d3.max(data, (d) => d.year) + 1])
+    .range([0, w]);//domain increased to introduce padding laterally
   yScale.domain([d3.min(data, (d) => d.time), d3.max(data, (d) => d.time)])
     .range([h, 0]);
 
@@ -55,23 +52,30 @@ const drawScatterPlot = (data) => {
     .attr('r', r)
     .attr('class', 'dot')
     .style('fill', (d) => d.doping ? 'blue' : 'red')
+    .style('stroke', 'black')
+    .style('fill-opacity', 0.6)
     .attr('data-xvalue', (d) => d.year)
     .attr('data-yvalue', (d) => d.time);
 
   //x and y axes
   const xAxis = d3.axisBottom(xScale);
   const yAxis = d3.axisLeft(yScale);
-  //extend the x-axis
-  let newTicks = xAxis.scale().ticks();
-  // let nextDate = new Date(`${data[data.length - 1].year.getFullYear() + 4}`);
-  let nextDate = data[data.length - 1].year + 1;
-  // xAxis.tickValues(newTicks.concat(nextDate));
-  console.log('newDate', nextDate);
-  console.log('ticks', xAxis.scale().ticks());
   svg.append('g').attr('transform', `translate(${margin.left}, ${h + margin.top})`)
-    .call(xAxis.tickValues(newTicks.concat(nextDate)));
+    .attr('id', 'x-axis')
+    .call(xAxis.tickFormat(d3.format('d')));
   svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`)
-    .call(yAxis);
+    .attr('id', 'y-axis')
+    .call(yAxis.tickFormat(d3.timeFormat('%M:%S')));
 
+  //adding legend
+  const legend = svg.append('g')
+    .attr('id', 'legend')
+    .attr('transform', `translate(${w + margin.left - 150}, ${h / 2})`);
 
+  legend.append('text')
+    .attr('class', 'legendText')
+    .text('No doping allegations');
+  legend.append('text')
+    .attr('class', 'legendText')
+    .text('Riders with doping allegations');
 };
