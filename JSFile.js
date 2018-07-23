@@ -1,34 +1,42 @@
-let req = new XMLHttpRequest();
-let jsonData = [];
-req.open('GET',
-'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json',
-true);
-req.send();
-req.onload = () => {
-  jsonData = JSON.parse(req.responseText);
-  console.log(jsonData);
-  let parser = d3.timeParse('%M:%S');
-  let data = jsonData.reduce((acc, item) => acc.concat([{
-    time: parser(item.Time),
-    place: item.Place,
-    seconds: item.Seconds,
-    name: item.Name,
-    year: item.Year,
-    doping: item.Doping,
-  },
-  ]), []);
-  drawScatterPlot(data);
+// function that retrieves the data and calls drawScatterPlot
+const getData = () => {
+  let req = new XMLHttpRequest();
+  let jsonData = [];
+  req.open('GET',
+  'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json',
+  true);
+  req.send();
+  req.onload = () => {
+    jsonData = JSON.parse(req.responseText);
+    let parser = d3.timeParse('%M:%S');
+    let data = jsonData.reduce((acc, item) => acc.concat([{
+      ...item,
+      time: parser(item.Time),
+    },
+    ]), []);
+    drawScatterPlot(data);
+  };
 };
+
+getData();
 
 const drawScatterPlot = (data) => {
   //dimensions of the chart element
+  console.log(data[0]);
   const w = 700;
   const h = 500;
   const margin = { top: 20, right: 80, bottom: 20, left: 100, };
   const r = 5;
+  const minYear = d3.min(data, (d) => d.Year);
 
   //svg container for the charset
-  const svg = d3.select('body')
+  const container = d3.select('body')
+    .append('div')
+    .attr('class', 'container')
+    .style('width', `${w + margin.left + margin.right}px`);
+
+  //svg element including the graph
+  const svg = container
     .append('svg')
     .attr('width', w + margin.left + margin.right)
     .attr('height', h + margin.top + margin.bottom)
@@ -37,25 +45,48 @@ const drawScatterPlot = (data) => {
   //scales for the x and y axes
   let xScale = d3.scaleLinear();
   let yScale = d3.scaleTime();
-  xScale.domain([d3.min(data, (d) => d.year) - 1, d3.max(data, (d) => d.year) + 1])
+  xScale.domain([minYear - 1, d3.max(data, (d) => d.Year) + 1])
     .range([0, w]);//domain increased to introduce padding laterally
-  yScale.domain([d3.min(data, (d) => d.time), d3.max(data, (d) => d.time)])
+  yScale.domain([d3.max(data, (d) => d.time), d3.min(data, (d) => d.time)])
     .range([h, 0]);
+
+  //tooltip - a group wrapping a rect and text inside it
+  let tooltip = container.append('div')
+    .attr('class', 'tooltip')
+    .attr('id', 'tooltip')
+    .style('visibility', 'hidden');
+
+  let paragraph1 = tooltip.append('p');
+  let paragraph2 = tooltip.append('p');
+  let paragraph3 = tooltip.append('p');
 
   //scatter plots added to the graph
   svg.selectAll('circle')
     .data(data)
     .enter()
     .append('circle')
-    .attr('cx', (d) => xScale(d.year) + margin.left)
-    .attr('cy', (d) => h + margin.top - yScale(d.time))
+    .attr('cx', (d) => xScale(d.Year) + margin.left)
+    .attr('cy', (d) => margin.top + yScale(d.time))
     .attr('r', r)
     .attr('class', 'dot')
-    .style('fill', (d) => d.doping ? 'blue' : 'red')
+    .style('fill', (d) => d.Doping ? 'red' : 'blue')
     .style('stroke', 'black')
     .style('fill-opacity', 0.6)
-    .attr('data-xvalue', (d) => d.year)
-    .attr('data-yvalue', (d) => d.time);
+    .attr('data-xvalue', (d) => d.Year)
+    .attr('data-yvalue', (d) => d.time)
+    .on('mouseover', (d, i) => {//tooltip appears when mouse over item
+      console.log(d.Year);
+      tooltip.style('visibility', 'visible')
+        .style('left', `${margin.left + xScale(d.Year)}px`)
+        .style('top', `${margin.top + yScale(d.time)}px`)
+        .attr('data-year', `${d.Year}`);
+      paragraph1.text(`${d.Name} (${d.Nationality})`);
+      paragraph2.text(`${d.Year} - ${d.Time}`);
+      paragraph3.text(`${d.Doping}`);
+    })
+    .on('mouseout', (d) => {
+      tooltip.style('visibility', 'hidden');
+    });
 
   //x and y axes
   const xAxis = d3.axisBottom(xScale);
@@ -68,18 +99,16 @@ const drawScatterPlot = (data) => {
     .call(yAxis.tickFormat(d3.timeFormat('%M:%S')));
 
   //adding legend
-  const legend = svg.append('g')
-    .attr('id', 'legend');
+  const legend = container.append('div')
+    .attr('id', 'legend')
+    .attr('class', 'legend')
+    .style('left', `${w + margin.left - 260}px`)
+    .style('top', `${margin.top + 30}px`);
 
-  legend.append('text')
-    .attr('class', 'legendText')
-    .text('No doping allegations')
-    .attr('transform', `translate(${w + margin.left - 150}, ${h / 2})`);
-  legend.append('text')
-    .attr('class', 'legendText')
-    .text('Riders with doping allegations')
-    .attr('transform', `translate(${w + margin.left - 150}, ${h / 2 + 20})`);
-  legend.append('rect')
-    .attr('fill', 'blue')
-    .attr()
+  const rowTop = legend.append('div');
+  const rowBottom = legend.append('div');
+  rowTop.append('div').text('No doping allegations').attr('class', 'textLegend');
+  rowTop.append('div').attr('class', 'rect noAllegations');
+  rowBottom.append('div').text('Doping allegations').attr('class', 'textLegend');
+  rowBottom.append('div').attr('class', 'rect allegations');
 };

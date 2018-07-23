@@ -1,19 +1,70 @@
-.containerSVG{
-  border: 1px solid green;
+body{
+  font-family: Roboto Slab, serif;
+  box-sizing: border-box;
+}
+
+/* container that includes the graph svg */
+/* .containerSVG{
   display: block;
   margin: 0 auto;
+} */
+
+/* font size for axes */
+g{
+  font-size: 12px;
 }
 
 h1, h4{
   text-align: center;
-  font-family: Roboto Slab, serif;
 }
 
-.dot{
+/* container that includes the graph, necessary to avoid setting the body as relatively
+positioned */
+.container{
+  position: relative;
+  margin: 0 auto;
+}
+
+/* legend div */
+.legend{
+  position: absolute;
+  width: 260px;
+}
+
+/* rectangles in the legend */
+.rect{
+  width: 30px;
+  height: 20px;
+  display: inline-block;
+  vertical-align: middle;
+  opacity: 0.6;
+}
+
+.noAllegations{
+  background-color: blue;
+}
+
+.allegations{
+  background-color: red;
+}
+
+/* text divs within legend */
+.textLegend{
+  width: 220px;
+  text-align: right;
+  margin-right: 5px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* tooltip */
+.tooltip{
+  min-width: 100px;
+  min-height: 50px;
   opacity: 0.8;
-}
-
-.legendText{
-  font-size: 10px;
-  font-family: Roboto Slab, serif;
+  background-color: rgb(152, 210, 221);
+  border-radius: 4px;
+  position: absolute;
+  white-space: nowrap;
+  padding: 5px 10px;
 }
